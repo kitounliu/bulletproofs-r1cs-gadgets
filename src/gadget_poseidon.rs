@@ -23,6 +23,9 @@ use curve25519_dalek::ristretto::CompressedRistretto;
 use std::mem;
 use std::collections::HashMap;
 
+use core::borrow::BorrowMut;
+
+
 // TODO: Add serialization with serde
 pub struct PoseidonParams {
     pub width: usize,
@@ -551,7 +554,7 @@ pub fn Poseidon_hash_4_gadget<'a, CS: ConstraintSystem>(
 }
 
 /// Allocate padding constant and zeroes for Prover
-pub fn allocate_statics_for_prover(prover: &mut Prover, num_statics: usize) -> Vec<AllocatedScalar> {
+pub fn allocate_statics_for_prover<'g, T: BorrowMut<Transcript>>(prover: &mut Prover<'g, T>, num_statics: usize) -> Vec<AllocatedScalar> {
     let mut statics = vec![];
     let (_, var) = prover.commit(Scalar::from(ZERO_CONST), Scalar::zero());
     statics.push(AllocatedScalar {
@@ -578,7 +581,7 @@ pub fn allocate_statics_for_prover(prover: &mut Prover, num_statics: usize) -> V
 }
 
 /// Allocate padding constant and zeroes for Verifier
-pub fn allocate_statics_for_verifier(verifier: &mut Verifier, num_statics: usize, pc_gens: &PedersenGens) -> Vec<AllocatedScalar> {
+pub fn allocate_statics_for_verifier<T: BorrowMut<Transcript>>(verifier: &mut Verifier<T>, num_statics: usize, pc_gens: &PedersenGens) -> Vec<AllocatedScalar> {
     let mut statics = vec![];
     // Commitment to PADDING_CONST with blinding as 0
     let pad_comm = pc_gens.commit(Scalar::from(PADDING_CONST), Scalar::zero()).compress();
